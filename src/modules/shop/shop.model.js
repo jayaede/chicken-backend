@@ -4,7 +4,7 @@ const shopSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     location: { type: String, required: true },
-    phone: { type: String },
+    phone: { type: String, required: true },
     shopUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

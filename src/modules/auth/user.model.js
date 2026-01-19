@@ -20,7 +20,16 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Shop",
       default: null
-    }
+    },
+    phone: { type: String, required: true },
+    shopName: {
+      type: String,
+      required: function () {
+        return this.role === "SHOP";
+      }
+    },
+    otpHash: String,
+    otpExpires: Date,
   },
   { timestamps: true }
 );

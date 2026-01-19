@@ -9,7 +9,7 @@ exports.createShop = async (req, res) => {
   try {
     const { name, location, phone, username, password } = req.body;
 
-    if (!name || !location || !username || !password) {
+    if (!name || !location || !username || !password || !phone) {
       return res.status(400).json({ message: "All fields required" });
     }
 
@@ -28,7 +28,9 @@ exports.createShop = async (req, res) => {
       username: username,
       password: hashedPassword,
       role: "SHOP",
-      shopId: shop._id
+      shopId: shop._id,
+      phone,
+      shopName: shop.name
     });
 
     res.status(201).json({ 

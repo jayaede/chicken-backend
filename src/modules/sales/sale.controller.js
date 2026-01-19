@@ -26,7 +26,7 @@ exports.createSale = async (req, res) => {
 };
 
 exports.getMySales = async (req, res) => {
-  const sales = await Sale.find({ shop: req.user.shop })
+  const sales = await Sale.find({ shopId: req.user.shopId })
     .sort({ createdAt: -1 });
 
   res.json(sales);

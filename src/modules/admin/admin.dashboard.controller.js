@@ -20,15 +20,57 @@ exports.getAdminDashboard = async (req, res) => {
 
   const todaySales = await Sale.aggregate([
     { $match: { createdAt: { $gte: startOfDay } } },
-    { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    { $group: { 
+        _id: null,
+        total: { $sum: "$totalAmount" },
+        totalKg: { $sum: "$quantityKg" }
+      } 
+    }
   ]);
 
   const monthSales = await Sale.aggregate([
     { $match: { createdAt: { $gte: startOfMonth } } },
-    { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    { $group: { 
+      _id: null,
+      total: { $sum: "$totalAmount" },
+      totalKg: { $sum: "$quantityKg" }
+    } }
   ]);
 
+  const shopWise = await Sale.aggregate([
+      {
+        $group: {
+          _id: "$shopId",
+          totalKg: { $sum: "$quantityKg" },
+          totalAmount: { $sum: "$totalAmount" },
+        },
+      },
+      {
+        $lookup: {
+          from: "shops",
+          localField: "_id",
+          foreignField: "_id",
+          as: "shop",
+        },
+      },
+      { $unwind: "$shop" },
+      {
+        $project: {
+          shopId: "$_id",
+          shopName: "$shop.name",
+          totalKg: 1,
+          totalAmount: 1,
+        },
+      },
+      { $sort: { totalAmount: -1 } },
+    ]);
+
   const salesChart = await Sale.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: weekStart },
+      },
+    },
     {
       $group: {
         _id: {
@@ -53,17 +95,19 @@ exports.getAdminDashboard = async (req, res) => {
     {
       $group: {
         _id: null,
-        total: { $sum: "$quantityKg" }
+        total: { $sum: "$quantityKg" },
+        totalAmount: { $sum: "$totalAmount" },
       }
     }
   ]);
 
   res.json({
     totalShops,
-    totalSalesToday: todaySales[0]?.total || 0,
-    totalSalesMonth: monthSales[0]?.total || 0,
+    totalSalesToday: todaySales[0] || { total: 0, totalKg: 0 },
+    totalSalesMonth: monthSales[0] || { total: 0, totalKg: 0 },
     totalStockValue: stockValue[0]?.total || 0,
-    totalSoldKg: totalSoldKg[0]?.total || 0,
+    totalSoldKg: totalSoldKg[0] || { total: 0, totalAmount: 0 },
+    shopWise,
     salesChart: salesChart.map(s => ({
       date: s._id,
       amount: s.amount
