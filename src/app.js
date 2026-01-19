@@ -4,7 +4,10 @@ const cors = require("cors");
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend URL
+    origin: [
+      "http://localhost:5173",
+      "https://chicken-frontend-pi.vercel.app/"
+    ],
     credentials: true,
   })
 );
