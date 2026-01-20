@@ -9,10 +9,15 @@ app.use(
       "https://chicken-frontend-pi.vercel.app/"
     ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+app.options("*", cors());
 app.use(express.json());
-
+app.get("/", (req, res) => {
+  res.send("Chicken Shop Backend Running 🚀");
+});
 app.use("/api/auth", require("./modules/auth/auth.routes"));
 app.use("/api/shop", require("./modules/shop/shop.routes"));
 app.use("/api/prices", require("./modules/prices/price.routes"));
