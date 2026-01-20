@@ -13,7 +13,8 @@ const stockSchema = new mongoose.Schema(
     },
     quantityKg: {
       type: Number,
-      required: true
+      required: true,
+      min: [1, "Quantity must be valid"]
     },
     lowStockAlertKg: {
       type: Number,

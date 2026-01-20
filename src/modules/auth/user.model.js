@@ -21,7 +21,11 @@ const userSchema = new mongoose.Schema(
       ref: "Shop",
       default: null
     },
-    phone: { type: String, required: true },
+    phone: { 
+      type: String,
+      required: true,
+      match: [/^[6-9]\d{9}$/, "Invalid phone number"]
+    },
     shopName: {
       type: String,
       required: function () {

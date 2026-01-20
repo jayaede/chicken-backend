@@ -16,15 +16,18 @@ const saleSchema = new mongoose.Schema(
     },
     quantityKg: {
       type: Number,
-      required: true
+      required: true,
+      min: [1, "Quantity must be valid"]
     },
     pricePerKg: {
       type: Number,
-      required: true
+      required: true,
+      min: [1, "Price must be valid"]
     },
     totalAmount: {
       type: Number,
-      required: true
+      required: true,
+      min: [1, "Total amount must be valid"]
     },
     saleDate: {
       type: Date,

@@ -4,7 +4,11 @@ const shopSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     location: { type: String, required: true },
-    phone: { type: String, required: true },
+    phone: { 
+      type: String,
+      required: true,
+      match: [/^[6-9]\d{9}$/, "Invalid phone number"]
+    },
     shopUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

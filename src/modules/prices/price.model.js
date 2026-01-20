@@ -8,7 +8,8 @@ const priceSchema = new mongoose.Schema(
     },
     pricePerKg: {
       type: Number,
-      required: true
+      required: true,
+      min: [1, "Price must be valid"]
     },
     history: [
       {
