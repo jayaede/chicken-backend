@@ -6,8 +6,8 @@ const dashboardController = require("./admin.dashboard.controller")
 router.use(auth);
 router.use(isAdmin);
 
-router.post("/shops", controller.createShop);
-router.get("/shops", controller.getShops);
+router.post("/shops", auth, controller.createShop);
+router.get("/shops", auth, controller.getShops);
 router.get("/dashboard", auth, isAdmin, dashboardController.getAdminDashboard);
 
 module.exports = router;
