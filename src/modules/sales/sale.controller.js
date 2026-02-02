@@ -64,7 +64,7 @@ exports.getShopSalesTrend = async (req, res) => {
   res.json(
     trend.map((d) => ({
       date: d._id,
-      value: d.totalKg,
+      quantity: d.totalKg,
     }))
   );
 };
