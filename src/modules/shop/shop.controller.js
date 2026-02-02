@@ -1,4 +1,3 @@
-const Shop = require("./shop.model");
 const Stock = require("../stock/stock.model");
 
 /**

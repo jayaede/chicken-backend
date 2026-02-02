@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Sale = require("./sale.model");
 const Stock = require("../stock/stock.model");
 
@@ -30,4 +31,40 @@ exports.getMySales = async (req, res) => {
     .sort({ createdAt: -1 });
 
   res.json(sales);
+};
+
+exports.getShopSalesTrend = async (req, res) => {
+  const { shopId } = req.params;
+
+  const trend = await Sale.aggregate([
+    {
+      $match: {
+        shopId: new mongoose.Types.ObjectId(shopId),
+      },
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$createdAt",
+          },
+        },
+        totalKg: { $sum: "$quantityKg" },
+      },
+    },
+    {
+      $sort: { _id: 1 },
+    },
+    {
+      $limit: 7,
+    },
+  ]);
+
+  res.json(
+    trend.map((d) => ({
+      date: d._id,
+      value: d.totalKg,
+    }))
+  );
 };

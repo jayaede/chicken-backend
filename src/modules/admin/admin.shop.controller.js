@@ -52,6 +52,48 @@ exports.createShop = async (req, res) => {
  * Get all shops
  */
 exports.getShops = async (req, res) => {
-  const shops = await Shop.find().populate("shopUser", "username role");
+  const shops = await Shop.aggregate([
+    {
+      $lookup: {
+        from: "stocks",
+        localField: "_id",
+        foreignField: "shopId",
+        as: "stocks",
+      },
+    },
+    {
+      $lookup: {
+        from: "sales",
+        localField: "_id",
+        foreignField: "shopId",
+        as: "sales",
+      },
+    },
+    {
+      $addFields: {
+        totalStockAdded: {
+          $ifNull: [{ $sum: "$stocks.quantityKg" }, 0],
+        },
+        totalSold: {
+          $ifNull: [{ $sum: "$sales.quantityKg" }, 0],
+        },
+      },
+    },
+    {
+      $addFields: {
+        stockLeft: {
+          $subtract: ["$totalStockAdded", "$totalSold"],
+        },
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        phone: 1,
+        stockLeft: 1,
+      },
+    },
+  ]);
+
   res.json(shops);
 };
