@@ -18,7 +18,7 @@ exports.getShopDashboard = async (req, res) => {
     { $group: { 
         _id: null,
         totalAmount: { $sum: "$totalAmount" },
-        totalQty: { $sum: "$remainingKg" } 
+        totalQty: { $sum: "$quantityKg" } 
       } 
     }
   ]);
@@ -47,7 +47,8 @@ exports.getShopDashboard = async (req, res) => {
  
   res.json({
     todaySales: todaySales[0]?.totalAmount || 0,
-    currentStockKg: stock?.quantityKg || 0,
+    todaySoldKg: todaySales[0]?.totalQty || 0,
+    currentStockKg: stock?.remainingKg || 0,
     salesChart: last7Days.map(item => ({
       date: item._id,
       amount: item.totalAmount
