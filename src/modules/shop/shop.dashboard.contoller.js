@@ -18,7 +18,7 @@ exports.getShopDashboard = async (req, res) => {
     { $group: { 
         _id: null,
         totalAmount: { $sum: "$totalAmount" },
-        totalQty: { $sum: "$quantityKg" } 
+        totalQty: { $sum: "$remainingKg" } 
       } 
     }
   ]);
