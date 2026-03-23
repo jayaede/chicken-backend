@@ -16,6 +16,11 @@ const stockSchema = new mongoose.Schema(
       required: true,
       min: [1, "Quantity must be valid"]
     },
+    remainingKg: {
+      type: Number,
+      required: true,
+      min: [0, "Remaining quantity cannot be negative"]
+    },
     lowStockAlertKg: {
       type: Number,
       default: 10

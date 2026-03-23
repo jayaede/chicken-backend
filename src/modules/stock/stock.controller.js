@@ -12,11 +12,13 @@ exports.addStock = async (req, res) => {
 
     if (stock) {
       stock.quantityKg += quantityKg;
+      stock.remainingKg += quantityKg;
       await stock.save();
     } else {
       stock = await Stock.create({
         shopId,
-        quantityKg
+        quantityKg,
+        remainingKg: quantityKg
       });
     }
 

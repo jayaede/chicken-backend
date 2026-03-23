@@ -18,11 +18,11 @@ exports.createSale = async (req, res) => {
   if (!stock || stock.quantityKg < quantityKg) {
     return res.status(400).json({ message: "Insufficient stock" });
   }
-  stock.quantityKg -= quantityKg;
+  stock.remainingKg -= quantityKg;
   await stock.save();
   res.json({
     message: "Sale completed",
-    remainingStock: stock.quantityKg
+    remainingStock: stock.remainingKg
   });
 };
 

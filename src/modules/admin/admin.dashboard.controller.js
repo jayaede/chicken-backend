@@ -1,116 +1,67 @@
 const Shop = require("../shop/shop.model");
-const Stock = require("../stock/stock.model");
-const Sale = require("../sales/sale.model");
 
 exports.getAdminDashboard = async (req, res) => {
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-
-  const startOfMonth = new Date(
-    startOfDay.getFullYear(),
-    startOfDay.getMonth(),
-    1
-  );
-
-  const weekStart = new Date();
-  weekStart.setHours(0, 0, 0, 0);
-  weekStart.setDate(weekStart.getDate() - 6);
-
-  const totalShops = await Shop.countDocuments();
-
-  const todaySales = await Sale.aggregate([
-    { $match: { createdAt: { $gte: startOfDay } } },
-    { $group: { 
-        _id: null,
-        total: { $sum: "$totalAmount" },
-        totalKg: { $sum: "$quantityKg" }
-      } 
-    }
-  ]);
-
-  const monthSales = await Sale.aggregate([
-    { $match: { createdAt: { $gte: startOfMonth } } },
-    { $group: { 
-      _id: null,
-      total: { $sum: "$totalAmount" },
-      totalKg: { $sum: "$quantityKg" }
-    } }
-  ]);
-
-  const shopWise = await Sale.aggregate([
+  try {
+    const shops = await Shop.aggregate([
       {
-        $group: {
-          _id: "$shopId",
-          totalKg: { $sum: "$quantityKg" },
-          totalAmount: { $sum: "$totalAmount" },
-        },
+        $lookup: {
+          from: "stocks",
+          localField: "_id",
+          foreignField: "shopId",
+          as: "stock"
+        }
       },
       {
         $lookup: {
-          from: "shops",
+          from: "sales",
           localField: "_id",
-          foreignField: "_id",
-          as: "shop",
-        },
+          foreignField: "shopId",
+          as: "sales"
+        }
       },
-      { $unwind: "$shop" },
+      {
+        $addFields: {
+          currentStock: {
+            $ifNull: [{ $arrayElemAt: ["$stock.remainingKg", 0] }, 0]
+          },
+          totalStockAdded: {
+            $ifNull: [{ $arrayElemAt: ["$stock.quantityKg", 0] }, 0]
+          },
+          totalSaleAmount: { $sum: "$sales.totalAmount" },
+          totalSoldKg: { $sum: "$sales.quantityKg" }
+        }
+      },
+      {
+        $addFields: {
+          wastage: {
+            $max: [
+              {
+                $subtract: [
+                  { $subtract: ["$totalStockAdded", "$totalSoldKg"] },
+                  "$currentStock"
+                ]
+              },
+              0
+            ]
+          }
+        }
+      },
       {
         $project: {
-          shopId: "$_id",
-          shopName: "$shop.name",
-          totalKg: 1,
-          totalAmount: 1,
-        },
-      },
-      { $sort: { totalAmount: -1 } },
+          name: 1,
+          phone: 1,
+          totalStockAdded: 1,
+          totalSoldKg: 1,
+          totalSaleAmount: 1,
+          currentStock: 1,
+          wastage: 1,
+        }
+      }
     ]);
 
-  const salesChart = await Sale.aggregate([
-    {
-      $match: {
-        createdAt: { $gte: weekStart },
-      },
-    },
-    {
-      $group: {
-        _id: {
-          $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
-        },
-        amount: { $sum: "$totalAmount" }
-      }
-    },
-    { $sort: { _id: 1 } }
-  ]);
+    res.json(shops);
 
-  const stockValue = await Stock.aggregate([
-    {
-      $group: {
-        _id: null,
-        total: { $sum: "$quantityKg" }
-      }
-    }
-  ]);
-
-  const totalSoldKg = await Sale.aggregate([
-    {
-      $group: {
-        _id: null,
-        total: { $sum: "$quantityKg" },
-        totalAmount: { $sum: "$totalAmount" },
-      }
-    }
-  ]);
-
-  res.json({
-    totalShops,
-    totalSalesToday: todaySales[0] || { total: 0, totalKg: 0 },
-    totalSalesMonth: monthSales[0] || { total: 0, totalKg: 0 },
-    totalStockValue: stockValue[0]?.total || 0,
-    totalSoldKg: totalSoldKg[0] || { total: 0, totalAmount: 0 },
-    shopWise,
-    salesChart: salesChart.map(s => ({
-      date: s._id,
-      amount: s.amount
-    }))
-  });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
